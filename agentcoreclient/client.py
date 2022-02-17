@@ -5,15 +5,24 @@ import platform
 import socket
 import sys
 import time
-import uuid
 
+from .config import CONFIG
+from .credentials import CREDENTIALS, on_credentials
+from .logger import setup_logger
 from .protocol import Protocol
 
 PROC_START_TS = int(time.time())
-SYSTEM_ID = str(uuid.uuid1()).split('-')[-1]
+
+AGENTCORE_IP = os.getenv(
+    'OS_AGENTCORE_IP', CONFIG.get('agentCoreIp', 'localhost'))
+AGENTCORE_PORT = os.getenv(
+    'OS_AGENTCORE_PORT', CONFIG.get('agentCorePort', 7211))
 
 
 class AgentCoreClient:
+
+    CONFIG = CONFIG
+    CREDENTIALS = CREDENTIALS
 
     def __init__(self):
         self._loop = asyncio.get_event_loop()
@@ -23,9 +32,15 @@ class AgentCoreClient:
         self.connected = False
         self._protocol = None
         self._keepalive = None
+        self._on_credentials = None
+        self._probe_name = None
         self._checks = None
         self._on_announced = None
         self._announce_fut = None
+
+    @staticmethod
+    def setup_logger(args):
+        setup_logger(args)
 
     async def _connect(self):
         conn = self._loop.create_connection(
@@ -95,26 +110,23 @@ class AgentCoreClient:
 
     def on_customer_uuid(self, data):
         logging.warn('announced')
-        customer_uuid = data['customerUuid']
-        agentcore_uuid = f'{customer_uuid}-{SYSTEM_ID}'
-        if self._on_announced:
-            self._on_announced(agentcore_uuid)
-        self._announce_fut.set_result(agentcore_uuid)
+        self._announce_fut.set_result(None)
 
     def send(self, msg):
         if self._protocol and self._protocol.transport:
             self._protocol.send(msg)
 
-    def connect(self, host, port):
+    def connect(self, host=AGENTCORE_IP, port=AGENTCORE_PORT):
         self.host = host
         self.port = port
         return self._connect()
 
-    def announce(self, probe_name, version, checks, on_announced=None):
+    def announce(self, probe_name, version, checks, on_credentials):
         assert self.connected, 'not connected'
         assert self._announce_fut is None, 'already announced'
+        self._probe_name = probe_name
         self._checks = checks
-        self._on_announced = on_announced
+        self._on_credentials = on_credentials
         self._announce_fut = fut = asyncio.Future()
         self._protocol.send({
             'type': 'probeAnnouncement',
@@ -139,7 +151,6 @@ class AgentCoreClient:
             'platform': platform.system(),
             'ip4': socket.gethostbyname(socket.gethostname()),
             'release': platform.release(),
-            'systemId': SYSTEM_ID,
             'processStartTs': PROC_START_TS
         }
 
@@ -152,14 +163,20 @@ class AgentCoreClient:
         try:
             host_uuid = data['hostUuid']
             check_name = data['checkName']
+            agentcore_uuid = data['hostConfig']['parentCore']
+            config = data['hostConfig']['probeConfig'][self._probe_name]
+            ip4 = config['ip4']
             check_func = self._checks[check_name].run
         except Exception:
             logging.error('invalid check configuration')
             return
 
+        cred = self._on_credentials and \
+            on_credentials(ip4, agentcore_uuid, self._on_credentials)
+
         t0 = time.time()
         try:
-            state_data = await check_func(data)
+            state_data = await check_func(data, cred)
         except Exception as e:
             logging.warning(f'on_run_check {host_uuid} {check_name} {e}')
             message = str(e)
