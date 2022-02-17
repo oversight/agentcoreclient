@@ -1,10 +1,10 @@
 """setup.py
 python setup.py sdist
-twine upload --repository pypitest dist/osagentcoreclient-x.x.x.tar.gz
-twine upload --repository pypi dist/osagentcoreclient-x.x.x.tar.gz
+twine upload --repository pypitest dist/agentcoreclient-x.x.x.tar.gz
+twine upload --repository pypi dist/agentcoreclient-x.x.x.tar.gz
 """
 from setuptools import setup, find_packages
-from osagentcoreclient import __version__ as version
+from agentcoreclient import __version__ as version
 from setuptools import setup, find_packages
 
 try:
@@ -14,7 +14,7 @@ except IOError:
     long_description = ''
 
 setup(
-    name='osagentcoreclient',
+    name='agentcoreclient',
     packages=find_packages(),
     version=version,
     description='AgentCore Client library for building Oversight probes',
@@ -22,10 +22,10 @@ setup(
     long_description_content_type='text/markdown',
     author='Cesbit',
     author_email='info@cesbit.com',
-    url='https://github.com/oversight-monitoring/osagentcoreclient',
+    url='https://github.com/oversight-monitoring/agentcoreclient',
     download_url=(
         'https://github.com/oversight-monitoring/'
-        'osagentcoreclient/tarball/v{}'.format(version)),
+        'agentcoreclient/tarball/v{}'.format(version)),
     keywords=['parser', 'grammar', 'autocompletion'],
     classifiers=[
         'Intended Audience :: Developers',
