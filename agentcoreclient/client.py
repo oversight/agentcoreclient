@@ -8,7 +8,7 @@ import sys
 import time
 
 from .config import CONFIG_FN
-from .credentials import on_credentials
+from .credentials import read_credentials
 from .logger import setup_logger
 from .protocol import Protocol
 
@@ -174,7 +174,7 @@ class AgentCoreClient:
             logging.error('invalid check configuration')
             return
 
-        cred = self._on_credentials and on_credentials(
+        cred = self._on_credentials and read_credentials(
             host_uuid, ip4, agentcore_uuid, self._on_credentials)
 
         t0 = time.time()

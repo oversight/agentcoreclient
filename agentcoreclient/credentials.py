@@ -28,10 +28,11 @@ def decrypt(key, data):
     return unpad(dec).decode('utf-8')
 
 
-def on_credentials(host_uuid, ip4, agentcore_uuid, func) -> dict:
+def read_credentials(host_uuid, ip4, agentcore_uuid, func) -> dict:
     cred = CREDENTIALS.get(host_uuid)
     if cred:
         return cred
+
     fn = os.path.join(CONFIG_FOLDER, f'{host_uuid}.ini')
     if os.path.exists(fn):
         key = get_key(agentcore_uuid)
@@ -48,6 +49,7 @@ def on_credentials(host_uuid, ip4, agentcore_uuid, func) -> dict:
         # make sure next time this will be found for host_uuid
         CREDENTIALS[host_uuid] = cred
         return cred
+
     fn = os.path.join(CONFIG_FOLDER, f'{ip4}.ini')
     if os.path.exists(fn):
         key = get_key(agentcore_uuid)
@@ -76,5 +78,5 @@ def on_credentials(host_uuid, ip4, agentcore_uuid, func) -> dict:
             logging.error(f'Credentials [{ip4}] {e}')
         else:
             return cred
-
-    logging.warning(f'Credentials [{ip4}] missing')
+    else:
+        logging.warning(f'Credentials [{ip4}] missing')
