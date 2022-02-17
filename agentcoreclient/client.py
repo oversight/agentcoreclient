@@ -8,7 +8,7 @@ import sys
 import time
 
 from .config import CONFIG_FN
-from .credentials import on_credentials
+from .config import get_asset_config
 from .logger import setup_logger
 from .protocol import Protocol
 
@@ -22,7 +22,7 @@ class AgentCoreClient:
         probe_name: str,
         version: str,
         checks: list,
-        on_credentials=None,
+        read_asset_config=None,
         config_fn=None
     ):
         self._loop = asyncio.get_event_loop()
@@ -30,7 +30,7 @@ class AgentCoreClient:
         self.connected = False
         self._protocol = None
         self._keepalive = None
-        self._on_credentials = on_credentials
+        self._on_asset_config = read_asset_config
         self._probe_name = probe_name
         self._probe_version = version
         self._checks = checks
@@ -164,7 +164,7 @@ class AgentCoreClient:
 
     async def on_run_check(self, data):
         try:
-            host_uuid = data['hostUuid']
+            asset_id = data['hostUuid']
             check_name = data['checkName']
             agentcore_uuid = data['hostConfig']['parentCore']
             config = data['hostConfig']['probeConfig'][self._probe_name]
@@ -174,30 +174,30 @@ class AgentCoreClient:
             logging.error('invalid check configuration')
             return
 
-        cred = self._on_credentials and on_credentials(
-            host_uuid, ip4, agentcore_uuid, self._on_credentials)
+        cred = self._on_asset_config and get_asset_config(
+            asset_id, ip4, agentcore_uuid, self.read_asset_config)
 
         t0 = time.time()
         try:
             state_data = await check_func(data, cred)
         except Exception as e:
-            logging.warning(f'on_run_check {host_uuid} {check_name} {e}')
+            logging.warning(f'on_run_check {asset_id} {check_name} {e}')
             message = str(e)
             framework = {'timestamp': t0, 'runtime': time.time() - t0}
             self.send({
                 'type': 'checkError',
-                'hostUuid': host_uuid,
+                'hostUuid': asset_id,
                 'checkName': check_name,
                 'message': message,
                 'framework': framework,
             })
         else:
             if state_data:
-                logging.debug(f'on_run_check {host_uuid} {check_name} ok!')
+                logging.debug(f'on_run_check {asset_id} {check_name} ok!')
                 framework = {'timestamp': t0, 'runtime': time.time() - t0}
                 self.send({
                     'type': 'stateData',
-                    'hostUuid': host_uuid,
+                    'hostUuid': asset_id,
                     'framework': framework,
                     'checkName': check_name,
                     'stateData': state_data
