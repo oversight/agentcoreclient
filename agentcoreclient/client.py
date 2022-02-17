@@ -127,23 +127,21 @@ class AgentCoreClient:
     def connect(self):
         return self._connect()
 
-    def announce(self, probe_name, version, checks, on_credentials):
+    def announce(self):
         assert self.connected, 'not connected'
         assert self._announce_fut is None, 'already announced'
-        self._probe_name = probe_name
-        self._checks = checks
         self._on_credentials = on_credentials
         self._announce_fut = fut = asyncio.Future()
         self._protocol.send({
             'type': 'probeAnnouncement',
             'hostInfo': self._get_hostinfo(),
             'platform': self._get_platform_str(),
-            'versionNr': version,
-            'probeName': probe_name,
+            'versionNr': self._probe_version,
+            'probeName': self._probe_name,
             'probeProperties': ['remoteProbe'],
             'availableChecks': {
                 k: {'defaultCheckInterval': v.interval}
-                for k, v in checks.items()
+                for k, v in self._checks.items()
             },
         })
         return fut
