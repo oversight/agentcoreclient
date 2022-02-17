@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import os
 import platform
@@ -6,37 +7,42 @@ import socket
 import sys
 import time
 
-from .config import CONFIG
-from .credentials import CREDENTIALS, on_credentials
+from .config import CONFIG_FN
+from .credentials import on_credentials
 from .logger import setup_logger
 from .protocol import Protocol
 
 PROC_START_TS = int(time.time())
 
-AGENTCORE_IP = os.getenv(
-    'OS_AGENTCORE_IP', CONFIG.get('agentCoreIp', 'localhost'))
-AGENTCORE_PORT = os.getenv(
-    'OS_AGENTCORE_PORT', CONFIG.get('agentCorePort', 7211))
-
 
 class AgentCoreClient:
 
-    CONFIG = CONFIG
-    CREDENTIALS = CREDENTIALS
-
-    def __init__(self):
+    def __init__(
+        self,
+        probe_name: str,
+        version: str,
+        checks: list,
+        on_credentials=None,
+        config_fn=None
+    ):
         self._loop = asyncio.get_event_loop()
-        self.host = None
-        self.port = None
         self.connecting = False
         self.connected = False
         self._protocol = None
         self._keepalive = None
-        self._on_credentials = None
-        self._probe_name = None
-        self._checks = None
-        self._on_announced = None
+        self._on_credentials = on_credentials
+        self._probe_name = probe_name
+        self._probe_version = version
+        self._checks = checks
         self._announce_fut = None
+
+        config_fn = CONFIG_FN or config_fn
+        config = json.load(open(config_fn)) if config_fn and \
+            os.path.exists(config_fn) else {}
+        self.host = os.getenv('OS_AGENTCORE_IP', 
+            config.get('agentcoreIp', 'localhost'))
+        self.port = int(os.getenv('OS_AGENTCORE_PORT', 
+            config.get('agentcorePort', 7211)))
 
     @staticmethod
     def setup_logger(args):
@@ -116,9 +122,7 @@ class AgentCoreClient:
         if self._protocol and self._protocol.transport:
             self._protocol.send(msg)
 
-    def connect(self, host=AGENTCORE_IP, port=AGENTCORE_PORT):
-        self.host = host
-        self.port = port
+    def connect(self):
         return self._connect()
 
     def announce(self, probe_name, version, checks, on_credentials):

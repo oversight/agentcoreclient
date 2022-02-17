@@ -1,9 +1,8 @@
 import colorlog
 import logging.handlers
 import os
-from .config import CONFIG
 
-_LOG_LEVEL = os.getenv('OS_LOG_LEVEL', CONFIG.get('logLevel'))
+_LOG_LEVEL = os.getenv('OS_LOG_LEVEL')
 
 _LOG_DATE_FMT = '%y%m%d %H:%M:%S'
 

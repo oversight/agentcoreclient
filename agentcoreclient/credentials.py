@@ -7,6 +7,7 @@ from hashlib import md5
 from .config import CONFIG_FOLDER
 
 
+CREDENTIALS_FB_KEY = None
 CREDENTIALS = {}
 
 
@@ -27,9 +28,25 @@ def decrypt(key, data):
     return unpad(dec).decode('utf-8')
 
 
-def on_credentials(ip4, agentcore_uuid, func) -> dict:
+def on_credentials(host_uuid, ip4, agentcore_uuid, func) -> dict:
+    cred = CREDENTIALS.get(host_uuid)
+    if cred:
+        return cred
+    fn = os.path.join(CONFIG_FOLDER, f'{host_uuid}.ini')
+    if os.path.exists(fn):
+        key = get_key(agentcore_uuid)
+        config = configparser.ConfigParser()
+        config.read(fn)
+        try:
+            CREDENTIALS[host_uuid] = cred = func(config, key, decrypt)
+        except Exception as e:
+            logging.error(f'Credentials [{ip4}] {e}')
+        return cred
+
     cred = CREDENTIALS.get(ip4)
     if cred:
+        # make sure next time this will be found for host_uuid
+        CREDENTIALS[host_uuid] = cred
         return cred
     fn = os.path.join(CONFIG_FOLDER, f'{ip4}.ini')
     if os.path.exists(fn):
@@ -42,9 +59,10 @@ def on_credentials(ip4, agentcore_uuid, func) -> dict:
             logging.error(f'Credentials [{ip4}] {e}')
         return cred
 
-    cred = CREDENTIALS.get(None)
+    cred = CREDENTIALS.get(CREDENTIALS_FB_KEY)
     if cred:
-        CREDENTIALS[ip4] = cred
+        # make sure next time this will be found for host_uuid
+        CREDENTIALS[host_uuid] = cred
         return cred
 
     fn = os.path.join(CONFIG_FOLDER, 'defaultCredentials.ini')
@@ -53,7 +71,7 @@ def on_credentials(ip4, agentcore_uuid, func) -> dict:
         config = configparser.ConfigParser()
         config.read(fn)
         try:
-            CREDENTIALS[None] = cred = func(config, key, decrypt)
+            CREDENTIALS[CREDENTIALS_FB_KEY] = cred = func(config, key, decrypt)
         except Exception as e:
             logging.error(f'Credentials [{ip4}] {e}')
         else:
