@@ -177,8 +177,8 @@ class AgentCoreClient:
             logging.error('invalid check configuration')
             return
 
-        cred = self._on_credentials and \
-            on_credentials(ip4, agentcore_uuid, self._on_credentials)
+        cred = self._on_credentials and on_credentials(
+            host_uuid, ip4, agentcore_uuid, self._on_credentials)
 
         t0 = time.time()
         try:
