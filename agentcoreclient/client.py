@@ -175,7 +175,7 @@ class AgentCoreClient:
             return
 
         cred = self._on_asset_config and get_asset_config(
-            asset_id, ip4, agentcore_uuid, self.read_asset_config)
+            asset_id, ip4, agentcore_uuid, self._on_asset_config)
 
         t0 = time.time()
         try:
