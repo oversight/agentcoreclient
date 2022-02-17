@@ -39,9 +39,11 @@ class AgentCoreClient:
         config_fn = CONFIG_FN or config_fn
         config = json.load(open(config_fn)) if config_fn and \
             os.path.exists(config_fn) else {}
-        self.host = os.getenv('OS_AGENTCORE_IP', 
+        self.host = os.getenv(
+            'OS_AGENTCORE_IP',
             config.get('agentcoreIp', 'localhost'))
-        self.port = int(os.getenv('OS_AGENTCORE_PORT', 
+        self.port = int(os.getenv(
+            'OS_AGENTCORE_PORT',
             config.get('agentcorePort', 7211)))
 
     @staticmethod
