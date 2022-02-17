@@ -124,7 +124,7 @@ class AgentCoreClient:
             'probeName': probe_name,
             'probeProperties': ['remoteProbe'],
             'availableChecks': {
-                k: {'defaultCheckInterval': v.interval} 
+                k: {'defaultCheckInterval': v.interval}
                 for k, v in checks.items()
             },
         })
