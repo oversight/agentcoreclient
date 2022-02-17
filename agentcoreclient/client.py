@@ -1,31 +1,54 @@
 import asyncio
+import json
 import logging
 import os
 import platform
 import socket
 import sys
 import time
-import uuid
 
+from .config import CONFIG_FN
+from .credentials import on_credentials
+from .logger import setup_logger
 from .protocol import Protocol
 
 PROC_START_TS = int(time.time())
-SYSTEM_ID = str(uuid.uuid1()).split('-')[-1]
 
 
 class AgentCoreClient:
 
-    def __init__(self):
+    def __init__(
+        self,
+        probe_name: str,
+        version: str,
+        checks: list,
+        on_credentials=None,
+        config_fn=None
+    ):
         self._loop = asyncio.get_event_loop()
-        self.host = None
-        self.port = None
         self.connecting = False
         self.connected = False
         self._protocol = None
         self._keepalive = None
-        self._checks = None
-        self._on_announced = None
+        self._on_credentials = on_credentials
+        self._probe_name = probe_name
+        self._probe_version = version
+        self._checks = checks
         self._announce_fut = None
+
+        config_fn = CONFIG_FN or config_fn
+        config = json.load(open(config_fn)) if config_fn and \
+            os.path.exists(config_fn) else {}
+        self.host = os.getenv(
+            'OS_AGENTCORE_IP',
+            config.get('agentcoreIp', 'localhost'))
+        self.port = int(os.getenv(
+            'OS_AGENTCORE_PORT',
+            config.get('agentcorePort', 7211)))
+
+    @staticmethod
+    def setup_logger(args):
+        setup_logger(args)
 
     async def _connect(self):
         conn = self._loop.create_connection(
@@ -95,37 +118,29 @@ class AgentCoreClient:
 
     def on_customer_uuid(self, data):
         logging.warn('announced')
-        customer_uuid = data['customerUuid']
-        agentcore_uuid = f'{customer_uuid}-{SYSTEM_ID}'
-        if self._on_announced:
-            self._on_announced(agentcore_uuid)
-        self._announce_fut.set_result(agentcore_uuid)
+        self._announce_fut.set_result(None)
 
     def send(self, msg):
         if self._protocol and self._protocol.transport:
             self._protocol.send(msg)
 
-    def connect(self, host, port):
-        self.host = host
-        self.port = port
+    def connect(self):
         return self._connect()
 
-    def announce(self, probe_name, version, checks, on_announced=None):
+    def announce(self):
         assert self.connected, 'not connected'
         assert self._announce_fut is None, 'already announced'
-        self._checks = checks
-        self._on_announced = on_announced
         self._announce_fut = fut = asyncio.Future()
         self._protocol.send({
             'type': 'probeAnnouncement',
             'hostInfo': self._get_hostinfo(),
             'platform': self._get_platform_str(),
-            'versionNr': version,
-            'probeName': probe_name,
+            'versionNr': self._probe_version,
+            'probeName': self._probe_name,
             'probeProperties': ['remoteProbe'],
             'availableChecks': {
                 k: {'defaultCheckInterval': v.interval}
-                for k, v in checks.items()
+                for k, v in self._checks.items()
             },
         })
         return fut
@@ -139,7 +154,6 @@ class AgentCoreClient:
             'platform': platform.system(),
             'ip4': socket.gethostbyname(socket.gethostname()),
             'release': platform.release(),
-            'systemId': SYSTEM_ID,
             'processStartTs': PROC_START_TS
         }
 
@@ -152,14 +166,20 @@ class AgentCoreClient:
         try:
             host_uuid = data['hostUuid']
             check_name = data['checkName']
+            agentcore_uuid = data['hostConfig']['parentCore']
+            config = data['hostConfig']['probeConfig'][self._probe_name]
+            ip4 = config['ip4']
             check_func = self._checks[check_name].run
         except Exception:
             logging.error('invalid check configuration')
             return
 
+        cred = self._on_credentials and on_credentials(
+            host_uuid, ip4, agentcore_uuid, self._on_credentials)
+
         t0 = time.time()
         try:
-            state_data = await check_func(data)
+            state_data = await check_func(data, cred)
         except Exception as e:
             logging.warning(f'on_run_check {host_uuid} {check_name} {e}')
             message = str(e)

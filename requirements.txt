@@ -1,0 +1,2 @@
+colorlog==6.6.0
+pycryptodome==3.14.1
