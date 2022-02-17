@@ -8,8 +8,8 @@ from hashlib import md5
 CONFIG_FOLDER = os.getenv('OS_CONFIG_FOLDER', '/etc')
 CONFIG_FN = os.getenv('OS_CONFIG_FILENAME')
 
-DEFAULTCONFIG_FN = 'defaultCredentials.ini'
-DEFAULTCONFIG_KY = None
+DEFAULT_CONFIG_FN = 'defaultAssetConfig.ini'
+DEFAULT_CONFIG_KY = None
 ASSET_CONFIGS = {}
 
 
@@ -61,19 +61,20 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
             logging.error(f'Credentials [{ip4}] {e}')
         return cred
 
-    cred = ASSET_CONFIGS.get(DEFAULTCONFIG_KY)
+    cred = ASSET_CONFIGS.get(DEFAULT_CONFIG_KY)
     if cred:
         # make sure next time this will be found for asset_id
         ASSET_CONFIGS[asset_id] = cred
         return cred
 
-    fn = os.path.join(CONFIG_FOLDER, DEFAULTCONFIG_FN)
+    fn = os.path.join(CONFIG_FOLDER, DEFAULT_CONFIG_FN)
     if os.path.exists(fn):
         key = get_key(agentcore_uuid)
         config = configparser.ConfigParser()
         config.read(fn)
         try:
-            ASSET_CONFIGS[DEFAULTCONFIG_KY] = cred = func(config, key, decrypt)
+            ASSET_CONFIGS[DEFAULT_CONFIG_KY] = cred = \
+                func(config, key, decrypt)
         except Exception as e:
             logging.error(f'Credentials [{ip4}] {e}')
         else:
