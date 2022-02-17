@@ -130,7 +130,6 @@ class AgentCoreClient:
     def announce(self):
         assert self.connected, 'not connected'
         assert self._announce_fut is None, 'already announced'
-        self._on_credentials = on_credentials
         self._announce_fut = fut = asyncio.Future()
         self._protocol.send({
             'type': 'probeAnnouncement',
