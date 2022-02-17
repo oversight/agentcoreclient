@@ -2,6 +2,7 @@ import base64
 import configparser
 import logging
 import os
+from typing import Optional
 from Crypto.Cipher import AES
 from hashlib import md5
 from .config import CONFIG_FOLDER
@@ -28,7 +29,7 @@ def decrypt(key, data):
     return unpad(dec).decode('utf-8')
 
 
-def read_credentials(host_uuid, ip4, agentcore_uuid, func) -> dict:
+def read_credentials(host_uuid, ip4, agentcore_uuid, func) -> Optional[dict]:
     cred = CREDENTIALS.get(host_uuid)
     if cred:
         return cred
@@ -42,7 +43,8 @@ def read_credentials(host_uuid, ip4, agentcore_uuid, func) -> dict:
             CREDENTIALS[host_uuid] = cred = func(config, key, decrypt)
         except Exception as e:
             logging.error(f'Credentials [{ip4}] {e}')
-        return cred
+
+        return cred  # can be None in case of the exception
 
     cred = CREDENTIALS.get(ip4)
     if cred:
