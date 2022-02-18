@@ -11,7 +11,7 @@ CONFIG_FN = os.getenv('OS_CONFIG_FILENAME')
 DEFAULT_CONFIG_FN = 'defaultAssetConfig.ini'
 DEFAULT_CONFIG_KY = None
 ASSET_CONFIGS = {}
-
+RELOAD_FN = os.path.join(CONFIG_FOLDER, 'reload')
 
 def get_key(agentcore_uuid):
     flipped = 'tt{0}'.format(agentcore_uuid[::-1]).encode('utf-8')
@@ -31,6 +31,10 @@ def decrypt(key, data):
 
 
 def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
+    if os.path.exists(RELOAD_FN):
+        ASSET_CONFIGS.clear()
+        os.unlink(RELOAD_FN)
+
     cred = ASSET_CONFIGS.get(asset_id)
     if cred:
         return cred
