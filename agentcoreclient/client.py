@@ -166,13 +166,13 @@ class AgentCoreClient:
         try:
             # Prepare for the host to asset rename
             try:
-                asset_id, assetConfig = data['assetId'], data['assetConfig']
+                asset_id, asset_config = data['assetId'], data['assetConfig']
             except KeyError:
-                asset_id, assetConfig = data['hostUuid'], data['hostConfig']
+                asset_id, asset_config = data['hostUuid'], data['hostConfig']
 
             check_name = data['checkName']
-            agentcore_uuid = assetConfig['parentCore']
-            config = assetConfig['probeConfig'][self._probe_name]
+            agentcore_uuid = asset_config['parentCore']
+            config = asset_config['probeConfig'][self._probe_name]
             ip4 = config['ip4']
             check_func = self._checks[check_name].run
         except Exception:
