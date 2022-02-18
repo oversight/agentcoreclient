@@ -47,7 +47,7 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
         try:
             ASSET_CONFIGS[asset_id] = cred = func(config, key, decrypt)
         except Exception as e:
-            logging.error(f'Credentials [{ip4}] {e}')
+            logging.error(f'Config [{ip4}] {e}')
         return cred
 
     cred = ASSET_CONFIGS.get(ip4)
@@ -63,7 +63,7 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
         try:
             ASSET_CONFIGS[ip4] = cred = func(config, key, decrypt)
         except Exception as e:
-            logging.error(f'Credentials [{ip4}] {e}')
+            logging.error(f'Config [{ip4}] {e}')
         return cred
 
     cred = ASSET_CONFIGS.get(DEFAULT_CONFIG_KY)
@@ -81,8 +81,8 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
             ASSET_CONFIGS[DEFAULT_CONFIG_KY] = cred = \
                 func(config, key, decrypt)
         except Exception as e:
-            logging.error(f'Credentials [{ip4}] {e}')
+            logging.error(f'Config [{ip4}] {e}')
         else:
             return cred
 
-    logging.warning(f'Credentials [{ip4}] missing')
+    logging.warning(f'Config [{ip4}] missing')
