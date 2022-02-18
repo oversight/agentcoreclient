@@ -13,6 +13,7 @@ DEFAULT_CONFIG_KY = None
 ASSET_CONFIGS = {}
 RELOAD_FN = os.path.join(CONFIG_FOLDER, 'reload')
 
+
 def get_key(agentcore_uuid):
     flipped = 'tt{0}'.format(agentcore_uuid[::-1]).encode('utf-8')
     return md5(flipped).hexdigest().encode('utf-8')
