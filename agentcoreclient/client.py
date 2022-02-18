@@ -110,7 +110,7 @@ class AgentCoreClient:
             self._protocol = None
 
     def on_connection_made(self):
-        logging.warn('connected to agentcore')
+        logging.warning('connected to agentcore')
         self.connected = True
 
     def on_connection_lost(self):
@@ -130,8 +130,10 @@ class AgentCoreClient:
             'probeName': self._probe_name,
             'probeProperties': ['remoteProbe'],
             'availableChecks': {
-                k: {'defaultCheckInterval': v.interval}
-                for k, v in self._checks.items()
+                k: {
+                    'defaultCheckInterval': v.interval,
+                    'requiredServices': [],  # not supported by agentcoreclient
+                } for k, v in self._checks.items()
             },
         })
 
