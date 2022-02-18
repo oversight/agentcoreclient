@@ -6,6 +6,7 @@ import platform
 import socket
 import sys
 import time
+import uuid
 from typing import Optional, Callable
 
 from .config import CONFIG_FN
@@ -14,6 +15,7 @@ from .logger import setup_logger
 from .protocol import Protocol
 
 PROC_START_TS = int(time.time())
+SYSTEM_ID = str(uuid.uuid1()).split('-')[-1]
 
 
 class AgentCoreClient:
@@ -142,6 +144,7 @@ class AgentCoreClient:
             'platform': platform.system(),
             'ip4': socket.gethostbyname(socket.gethostname()),
             'release': platform.release(),
+            'systemId': SYSTEM_ID,
             'processStartTs': PROC_START_TS
         }
 
