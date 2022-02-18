@@ -5,3 +5,9 @@
 
 This is a library to create probes for the [Oversight platform](https://oversig.ht).
 
+## Supported environment variable
+
+Variable              | Description
+--------------------- | -----------
+`OS_LOG_LEVEL`        | Log level. One of `debug`, `info`, `warning`, `error` or `critical`.
+`OS_AGENTCORE_IP`     | Supply the AgentCoreIp

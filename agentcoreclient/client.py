@@ -41,10 +41,10 @@ class AgentCoreClient:
             os.path.exists(config_fn) else {}
         self.host = os.getenv(
             'OS_AGENTCORE_IP',
-            config.get('agentcoreIp', 'localhost'))
+            config.get('agentCoreIp', 'localhost'))
         self.port = int(os.getenv(
             'OS_AGENTCORE_PORT',
-            config.get('agentcorePort', 7211)))
+            config.get('agentCorePort', 7211)))
 
     @staticmethod
     def setup_logger(args):
