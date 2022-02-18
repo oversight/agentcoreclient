@@ -9,12 +9,10 @@ class Protocol(asyncio.Protocol):
         self,
         on_connection_made,
         on_connection_lost,
-        on_customer_uuid,
         on_run_check,
     ):
         self._on_connection_made = on_connection_made
         self._on_connection_lost = on_connection_lost
-        self._on_customer_uuid = on_customer_uuid
         self._on_run_check = on_run_check
         self.transport = None
         self.buffer = None
@@ -27,9 +25,6 @@ class Protocol(asyncio.Protocol):
         self.transport = None
         self.buffer = None
         self._on_connection_lost()
-
-    def on_customer_uuid(self, data):
-        self._on_customer_uuid(data)
 
     def on_run_check(self, data):
         asyncio.ensure_future(self._on_run_check(data))
@@ -62,6 +57,6 @@ class Protocol(asyncio.Protocol):
     PROTO_MAP = {
         'echoRequest': lambda p, _: p.send({'type': 'echoResponse'}),
         'echoResponse': lambda *args: None,
-        'customerUuid': on_customer_uuid,
+        'customerUuid': lambda *args: None,  # received when announced
         'runCheck': on_run_check,
     }
