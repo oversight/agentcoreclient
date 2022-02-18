@@ -35,7 +35,6 @@ class AgentCoreClient:
         self._probe_name = probe_name
         self._probe_version = version
         self._checks = checks
-        self._announce_fut = None
 
         config_fn = CONFIG_FN or config_fn
         config = json.load(open(config_fn)) if config_fn and \
@@ -56,7 +55,6 @@ class AgentCoreClient:
             lambda: Protocol(
                 self.on_connection_made,
                 self.on_connection_lost,
-                self.on_customer_uuid,
                 self.on_run_check,
             ),
             self.host,
@@ -71,6 +69,7 @@ class AgentCoreClient:
         else:
             if self._keepalive is None or self._keepalive.done():
                 self._keepalive = asyncio.ensure_future(self._keepalive_loop())
+            self._announce()
 
         self.connecting = False
 
@@ -87,7 +86,7 @@ class AgentCoreClient:
                 self.close()
                 break
 
-    async def _connect_loop(self):
+    async def connect_loop(self):
         initial_step = 2
         step = 2
         max_step = 2 ** 7
@@ -115,23 +114,12 @@ class AgentCoreClient:
     def on_connection_lost(self):
         logging.error('connection to agentcore lost')
         self.connected = False
-        asyncio.ensure_future(self._connect_loop())
-
-    def on_customer_uuid(self, data):
-        logging.warn('announced')
-        self._announce_fut.set_result(None)
 
     def send(self, msg):
         if self._protocol and self._protocol.transport:
             self._protocol.send(msg)
 
-    def connect(self):
-        return self._connect()
-
-    def announce(self):
-        assert self.connected, 'not connected'
-        assert self._announce_fut is None, 'already announced'
-        self._announce_fut = fut = asyncio.Future()
+    def _announce(self):
         self._protocol.send({
             'type': 'probeAnnouncement',
             'hostInfo': self._get_hostinfo(),
@@ -144,7 +132,6 @@ class AgentCoreClient:
                 for k, v in self._checks.items()
             },
         })
-        return fut
 
     @staticmethod
     def _get_hostinfo():
