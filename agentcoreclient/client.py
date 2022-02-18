@@ -6,6 +6,7 @@ import platform
 import socket
 import sys
 import time
+from typing import Optional, Callable
 
 from .config import CONFIG_FN
 from .config import get_asset_config
@@ -22,8 +23,8 @@ class AgentCoreClient:
         probe_name: str,
         version: str,
         checks: list,
-        read_asset_config=None,
-        config_fn=None
+        read_asset_config: Optional[Callable] = None,
+        config_fn: Optional[str] = None
     ):
         self._loop = asyncio.get_event_loop()
         self.connecting = False
@@ -47,8 +48,8 @@ class AgentCoreClient:
             config.get('agentCorePort', 7211)))
 
     @staticmethod
-    def setup_logger(args):
-        setup_logger(args)
+    def setup_logger(log_level: str = 'warning', log_colorized: bool = False):
+        setup_logger(log_level, log_colorized)
 
     async def _connect(self):
         conn = self._loop.create_connection(
