@@ -15,15 +15,16 @@ _MAP_LOG_LEVELS = {
 }
 
 
-def setup_logger(args):
+def setup_logger(log_level: str = 'warning', log_colorized: bool = False):
     """Setup logger.
 
-    Positional arguments:
-        args: usually an argparse object since we expect attributes like
-        args.log_level etc.
+    Keyword arguments:
+        log_level: Log level to use. May be overwritten by the environment
+                   variable `OS_LOG_LEVEL`. Default: `warning`.
+        log_colors: Use colors for logging.
     """
 
-    if args.log_colorized:
+    if log_colorized:
         # setup colorized formatter
         formatter = colorlog.ColoredFormatter(
             fmt=(
@@ -50,7 +51,7 @@ def setup_logger(args):
 
     logger = logging.getLogger()
 
-    log_level = _LOG_LEVEL or args.log_level
+    log_level = _LOG_LEVEL or log_level
     logger.setLevel(_MAP_LOG_LEVELS[log_level.upper()])
 
     ch = logging.StreamHandler()
