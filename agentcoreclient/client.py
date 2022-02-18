@@ -164,12 +164,8 @@ class AgentCoreClient:
 
     async def on_run_check(self, data):
         try:
-            # Prepare for the host to asset rename
-            try:
-                asset_id, asset_config = data['assetId'], data['assetConfig']
-            except KeyError:
-                asset_id, asset_config = data['hostUuid'], data['hostConfig']
-
+            asset_id = data['hostUuid']
+            asset_config = data['hostConfig']
             check_name = data['checkName']
             agentcore_uuid = asset_config['parentCore']
             config = asset_config['probeConfig'][self._probe_name]
