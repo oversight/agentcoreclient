@@ -168,7 +168,7 @@ class AgentCoreClient:
             check_name = data['checkName']
             agentcore_uuid = data['hostConfig']['parentCore']
             config = data['hostConfig']['probeConfig'][self._probe_name]
-            ip4 = config['ip4']
+            ip4 = config.get('ip4')
             check_func = self._checks[check_name].run
         except Exception:
             logging.error('invalid check configuration')
