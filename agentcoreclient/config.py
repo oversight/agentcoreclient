@@ -48,13 +48,14 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
             ASSET_CONFIGS[asset_id] = cred = func(config, key, decrypt)
         except Exception as e:
             logging.error(f'Config [{ip4}] {e}')
-        return cred
+        return cred  # cred can be None in case of an error
 
     cred = ASSET_CONFIGS.get(ip4)
     if cred:
         # make sure next time this will be found for asset_id
         ASSET_CONFIGS[asset_id] = cred
         return cred
+
     fn = os.path.join(CONFIG_FOLDER, f'{ip4}.ini')
     if os.path.exists(fn):
         key = get_key(agentcore_uuid)
@@ -64,7 +65,7 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
             ASSET_CONFIGS[ip4] = cred = func(config, key, decrypt)
         except Exception as e:
             logging.error(f'Config [{ip4}] {e}')
-        return cred
+        return cred  # cred can be None in case of an error
 
     cred = ASSET_CONFIGS.get(DEFAULT_CONFIG_KY)
     if cred:
