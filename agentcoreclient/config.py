@@ -85,4 +85,5 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
         else:
             return cred
 
-    logging.warning(f'Config [{ip4}] missing')
+    logging.warning('No default config')
+    ASSET_CONFIGS[DEFAULT_CONFIG_KY] = None
