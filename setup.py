@@ -22,9 +22,9 @@ setup(
     long_description_content_type='text/markdown',
     author='Cesbit',
     author_email='info@cesbit.com',
-    url='https://github.com/oversight-monitoring/agentcoreclient',
+    url='https://github.com/oversight/agentcoreclient',
     download_url=(
-        'https://github.com/oversight-monitoring/'
+        'https://github.com/oversight/'
         'agentcoreclient/tarball/v{}'.format(version)),
     keywords=['parser', 'grammar', 'autocompletion'],
     classifiers=[
