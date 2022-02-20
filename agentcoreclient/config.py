@@ -2,6 +2,7 @@ import base64
 import configparser
 import logging
 import os
+from typing import Optional, Callable
 from Crypto.Cipher import AES
 from hashlib import md5
 
@@ -31,7 +32,11 @@ def decrypt(key, data):
     return unpad(dec).decode('utf-8')
 
 
-def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
+def get_asset_config(
+        asset_id: str,
+        ip4: Optional[str],
+        agentcore_uuid: str,
+        func: Callable) -> dict:
     if os.path.exists(RELOAD_FN):
         ASSET_CONFIGS.clear()
         os.unlink(RELOAD_FN)
@@ -47,25 +52,26 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
         try:
             ASSET_CONFIGS[asset_id] = cred = func(config, key, decrypt)
         except Exception as e:
-            logging.error(f'Config [{ip4}] {e}')
+            logging.error(f'Config `{fn}` error: {e}')
         return cred  # cred can be None in case of an error
 
-    cred = ASSET_CONFIGS.get(ip4)
-    if cred:
-        # make sure next time this will be found for asset_id
-        ASSET_CONFIGS[asset_id] = cred
-        return cred
+    if ip4:
+        cred = ASSET_CONFIGS.get(ip4)
+        if cred:
+            # make sure next time this will be found for asset_id
+            ASSET_CONFIGS[asset_id] = cred
+            return cred
 
-    fn = os.path.join(CONFIG_FOLDER, f'{ip4}.ini')
-    if os.path.exists(fn):
-        key = get_key(agentcore_uuid)
-        config = configparser.ConfigParser()
-        config.read(fn)
-        try:
-            ASSET_CONFIGS[ip4] = cred = func(config, key, decrypt)
-        except Exception as e:
-            logging.error(f'Config [{ip4}] {e}')
-        return cred  # cred can be None in case of an error
+        fn = os.path.join(CONFIG_FOLDER, f'{ip4}.ini')
+        if os.path.exists(fn):
+            key = get_key(agentcore_uuid)
+            config = configparser.ConfigParser()
+            config.read(fn)
+            try:
+                ASSET_CONFIGS[ip4] = cred = func(config, key, decrypt)
+            except Exception as e:
+                logging.error(f'Config `{fn}` error: {e}')
+            return cred  # cred can be None in case of an error
 
     cred = ASSET_CONFIGS.get(DEFAULT_CONFIG_KY)
     if cred:
@@ -82,7 +88,7 @@ def get_asset_config(asset_id, ip4, agentcore_uuid, func) -> dict:
             ASSET_CONFIGS[DEFAULT_CONFIG_KY] = cred = \
                 func(config, key, decrypt)
         except Exception as e:
-            logging.error(f'Config [{ip4}] {e}')
+            logging.error(f'Config `{fn}` error: {e}')
         else:
             return cred
 
