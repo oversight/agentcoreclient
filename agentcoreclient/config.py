@@ -36,7 +36,7 @@ def get_asset_config(
         asset_id: str,
         ip4: Optional[str],
         agentcore_uuid: str,
-        func: Callable) -> dict:
+        func: Callable) -> Optional[dict]:
     if os.path.exists(RELOAD_FN):
         ASSET_CONFIGS.clear()
         os.unlink(RELOAD_FN)
