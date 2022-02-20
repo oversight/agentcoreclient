@@ -44,6 +44,7 @@ def get_asset_config(
     cred = ASSET_CONFIGS.get(asset_id)
     if cred:
         return cred
+
     fn = os.path.join(CONFIG_FOLDER, f'{asset_id}.ini')
     if os.path.exists(fn):
         key = get_key(agentcore_uuid)
@@ -68,7 +69,7 @@ def get_asset_config(
             config = configparser.ConfigParser()
             config.read(fn)
             try:
-                ASSET_CONFIGS[ip4] = cred = func(config, key, decrypt)
+                ASSET_CONFIGS[asset_id] = cred = func(config, key, decrypt)
             except Exception as e:
                 logging.error(f'Config `{fn}` error: {e}')
             return cred  # cred can be None in case of an error
