@@ -182,7 +182,7 @@ class AgentCoreClient:
             check_name = data['checkName']
             agentcore_uuid = asset_config['parentCore']
             config = asset_config['probeConfig'][self._probe_name]
-            ip4 = config['ip4']
+            ip4 = config.get('ip4')
             check = self._checks[check_name]
         except Exception:
             logging.error('invalid check configuration')
