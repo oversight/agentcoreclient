@@ -171,7 +171,8 @@ class AgentCoreClient:
             framework['serviceInfo'] = {'services': {check.__name__: {
                 'available': is_available,
                 'reportedBy': check.__name__,
-                'serviceInfoMsg': msg
+                'serviceInfoMsg': msg,
+                'hasDependingChecks': True
             }}}
         return framework
 
