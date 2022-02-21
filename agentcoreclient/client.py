@@ -82,8 +82,9 @@ class AgentCoreClient:
 
     async def _keepalive_loop(self):
         step = 30
+        await asyncio.sleep(step)  # start with a delay
+
         while self.connected:
-            await asyncio.sleep(step)
             try:
                 self._protocol.send({'type': 'echoRequest'})
             except asyncio.CancelledError:
@@ -92,6 +93,7 @@ class AgentCoreClient:
                 logging.error(e)
                 self.close()
                 break
+            await asyncio.sleep(step)
 
     async def connect_loop(self):
         initial_step = 2
