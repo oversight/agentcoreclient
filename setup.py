@@ -13,6 +13,11 @@ try:
 except IOError:
     long_description = ''
 
+install_requires = [
+    'colorlog==6.6.0',
+    'pycryptodome==3.14.1',
+]
+
 setup(
     name='agentcoreclient',
     packages=find_packages(),
@@ -27,6 +32,7 @@ setup(
         'https://github.com/oversight/'
         'agentcoreclient/tarball/v{}'.format(version)),
     keywords=['parser', 'grammar', 'autocompletion'],
+    install_requires=install_requires,
     classifiers=[
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
