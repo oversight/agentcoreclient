@@ -12,5 +12,5 @@ Variable              | Description
 `OS_LOG_LEVEL`        | Log level. One of `debug`, `info`, `warning`, `error` or `critical`. If not set, the `log_level` argument of the `setup_logger(..)` method will be used.
 `OS_AGENTCORE_IP`     | Set the agent core Ip address. Fallback to `agentCoreIp` from the configuration and finally `localhost`.
 `OS_AGENTCORE_PORT`   | Set the agent core port. Fallback to `agentCorePort` from the configuration and finally `7211`.
-`OS_CONFIG_FOLDER`    | Set the configuration folder. The assets configuration files must be stored in this folder. If not set, `/etc` will be used.
+`OS_CONFIG_FOLDER`    | Set the configuration folder. The assets configuration files must be stored in this folder. If not set, `/etc` will be used. *(This environment variable is usually configured in the Dockerfile of the corresponding probe)*
 `OS_CONFIG_FILENAME`  | Path to the probe configuration file. If not set, the `config_fn` argument of the `AgentCoreClient` will be used instead.
