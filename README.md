@@ -13,4 +13,4 @@ Variable              | Description
 `OS_AGENTCORE_IP`     | Set the agent core Ip address. Fallback to `agentCoreIp` from the configuration and finally `localhost`.
 `OS_AGENTCORE_PORT`   | Set the agent core port. Fallback to `agentCorePort` from the configuration and finally `7211`.
 `OS_CONFIG_FOLDER`    | Set the configuration folder. The assets configuration files must be stored in this folder. If not set, `/etc` will be used. *(This environment variable is usually configured in the Dockerfile of the corresponding probe)*
-`OS_CONFIG_FILENAME`  | Path to the probe configuration file. If not set, the `config_fn` argument of the `AgentCoreClient` will be used instead. *(For most probes there is no need to configure this environment variable as this is handled using `config_fn` in the corresponding probe)*
+`OS_CONFIG_FILENAME`  | Path to the probe configuration file. If not set, the `config_fn` argument of the `AgentCoreClient` will be used instead. *(It is recommended to configure the `config_fn` argument when building a probe and not rely on this environment variable only)*
