@@ -93,5 +93,6 @@ def get_asset_config(
         else:
             return cred
 
-    logging.warning('No default config')
+    # Log with debug level because some probes just do not require secrets
+    logging.debug(f'No default config file found ({fn})')
     ASSET_CONFIGS[DEFAULT_CONFIG_KY] = None
