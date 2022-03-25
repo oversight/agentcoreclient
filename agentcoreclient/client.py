@@ -13,6 +13,8 @@ from .config import CONFIG_FN
 from .config import get_asset_config
 from .logger import setup_logger
 from .protocol import Protocol
+from . import IgnoreResultException
+
 
 PROC_START_TS = int(time.time())
 SYSTEM_ID = str(uuid.uuid1()).split('-')[-1]
@@ -38,8 +40,8 @@ class AgentCoreClient:
         self._probe_version = version
         self._checks = checks
         self._required_services = [
-            c.__name__
-            for c in checks.values()
+            k
+            for k, c in checks.items()
             if getattr(c, 'required', False)
         ]
 
@@ -163,16 +165,20 @@ class AgentCoreClient:
         return f'{platform.system()}_{platform_bits}_{platform.release()}'
 
     @staticmethod
-    def _get_framework(check, start_time: float, is_available: bool):
+    def _get_framework(
+            check,
+            check_name: str,
+            start_time: float,
+            is_available: bool):
         framework = {
             'timestamp': start_time,
             'runtime': time.time() - start_time
         }
         if getattr(check, 'required', False):
             msg = 'OK' if is_available else 'see check error(s) for details'
-            framework['serviceInfo'] = {'services': {check.__name__: {
+            framework['serviceInfo'] = {'services': {check_name: {
                 'available': is_available,
-                'reportedBy': check.__name__,
+                'reportedBy': check_name,
                 'serviceInfoMsg': msg,
                 'hasDependingChecks': True
             }}}
@@ -197,10 +203,13 @@ class AgentCoreClient:
         t0 = time.time()
         try:
             state_data = await check.run(data, cred)
+        except IgnoreResultException:
+            logging.info(f'on_run_check {asset_id} {check_name} (ignored)')
         except Exception as e:
             logging.warning(f'on_run_check {asset_id} {check_name} {e}')
             message = str(e)
-            framework = self._get_framework(check, t0, is_available=False)
+            framework = self._get_framework(
+                check, check_name, t0, is_available=False)
             self.send({
                 'type': 'checkError',
                 'hostUuid': asset_id,
@@ -211,7 +220,8 @@ class AgentCoreClient:
         else:
             if state_data:
                 logging.debug(f'on_run_check {asset_id} {check_name} ok!')
-                framework = self._get_framework(check, t0, is_available=True)
+                framework = self._get_framework(
+                    check, check_name, t0, is_available=True)
                 self.send({
                     'type': 'stateData',
                     'hostUuid': asset_id,
