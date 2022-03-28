@@ -13,7 +13,7 @@ from .config import CONFIG_FN
 from .config import get_asset_config
 from .logger import setup_logger
 from .protocol import Protocol
-from . import IgnoreResultException
+from .exceptions import IgnoreResultException
 
 
 PROC_START_TS = int(time.time())
