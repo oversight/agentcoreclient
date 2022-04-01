@@ -43,7 +43,7 @@ class Protocol(asyncio.Protocol):
             loaded = json.loads(msg, encoding='utf-8')
             tp = loaded.get('type')
             if tp is None:
-                logging.warning('invalid message')
+                logging.warning('invalid message, `type` is missing')
 
             elif tp not in self.PROTO_MAP:
                 logging.warning(f'unsupported message type: {tp}')

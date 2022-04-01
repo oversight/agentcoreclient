@@ -30,6 +30,7 @@ class AgentCoreClient:
         read_asset_config: Optional[Callable] = None,
         config_fn: Optional[str] = None
     ):
+        logging.info(f"starting {probe_name} v{version}")
         self._loop = asyncio.get_event_loop()
         self.connecting = False
         self.connected = False
@@ -46,14 +47,20 @@ class AgentCoreClient:
         ]
 
         config_fn = CONFIG_FN or config_fn
+
         config = json.load(open(config_fn)) if config_fn and \
             os.path.exists(config_fn) else {}
+
+        logging.debug(f"config (source: {config_fn}): {config}")
+
         self.host = os.getenv(
             'OS_AGENTCORE_IP',
             config.get('agentCoreIp', 'localhost'))
         self.port = int(os.getenv(
             'OS_AGENTCORE_PORT',
             config.get('agentCorePort', 7211)))
+
+        logging.debug(f"using agentcore: {self.host}:{self.port}")
 
     @staticmethod
     def setup_logger(log_level: str = 'warning', log_colorized: bool = False):
